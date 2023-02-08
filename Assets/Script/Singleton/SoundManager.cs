@@ -370,7 +370,6 @@ public class SoundManager : SingletonMonoBehaviour<SoundManager>
                 BGMSourceList[0].Play();
             }
             BGMSourceList[0].loop = _isloop;
-            mNowSource = BGMSourceList[0];
 
             return BGMSourceList[0];
         }
