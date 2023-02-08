@@ -16,8 +16,27 @@ public class SaveManager : SingletonMonoBehaviour<SaveManager>
     protected void Start()
     {
         saveData = new MainSaveData();
-        saveData.Load();
+        Load();
+        Save();
+    }
+
+    public void Save()
+    {
+        if(saveData == null)
+        {
+            DebugManager.Instance.ErrorLog(this, "セーブするデータが生成されておりません。セーブデータを確認ください。");
+            return;
+        }
         saveData.Save();
+    }
+    public void Load()
+    {
+        if (saveData == null)
+        {
+            DebugManager.Instance.ErrorLog(this, "セーブするデータが生成されておりません。セーブデータを確認ください。");
+            return;
+        }
+        saveData.Load();
     }
 
 }
@@ -27,20 +46,20 @@ public class MainSaveData : SaveDataBase
 {
 
     [SerializeField]
-    [SaveData("SaveVersion", 0 , -1)]
-    public int mSaveVersion;
+    [SaveData("SaveVersion",typeof(int) , -1)]
+    public int mSaveVersion = 0;
     [SerializeField]
-    [SaveData("MasterVolume", 1.0f, -1.0f)]
-    public float mMasterVolume;
+    [SaveData("MasterVolume",typeof(float), -1.0f)]
+    public float mMasterVolume = 1.0f;
     [SerializeField]
-    [SaveData("SEVolume", 1.0f, -1.0f)]
-    public float mSEVolume;
+    [SaveData("SEVolume",typeof(float), -1.0f)]
+    public float mSEVolume = 1.0f;
     [SerializeField]
-    [SaveData("BGMVolume", 1.0f, -1.0f)]
-    public float mBGMVolume;
+    [SaveData("BGMVolume",typeof(float), -1.0f)]
+    public float mBGMVolume = 1.0f;
 
     [SerializeField]
-    [SaveData("Player")]
+    [SaveData("Player", typeof(PlayerSaveData))]
     public PlayerSaveData mPlayer;
 
     public void setMasterVolume(float _volume)
@@ -60,8 +79,8 @@ public class MainSaveData : SaveDataBase
 public class PlayerSaveData : SaveDataBase
 {
     [SerializeField]
-    [SaveData("UserName", "", null)]
-    private string mUserName;
+    [SaveData("UserName",typeof(string), "")]
+    public string mUserName = "";
 }
 
 [Serializable]
@@ -81,52 +100,50 @@ public class SaveDataBase : object
             {
                 string name = this.GetType().Name + "_" + saveAtt.key;
                 // 
-                if (value is int i)
+                if (saveAtt.type == typeof(int))
                 {
                     int saveValue = PlayerPrefs.GetInt(name);
-                    if (saveAtt.isErrorValue(saveValue))
-                    {
-                        field.SetValue(this, saveAtt.initValue);
-                    }
-                    else
+                    if (!saveAtt.isErrorValue(saveValue))
                     {
                         field.SetValue(this, saveValue);
                     }
                 }
-                else if (value is float f)
+                else if (saveAtt.type == typeof(float))
                 {
                     float saveValue = PlayerPrefs.GetFloat(name);
-                    if (saveAtt.isErrorValue(saveValue))
-                    {
-                        field.SetValue(this, saveAtt.initValue);
-                    }
-                    else
+                    if (!saveAtt.isErrorValue(saveValue))
                     {
                         field.SetValue(this, saveValue);
                     }
                 }
-                else if (value is string str)
+                else if (saveAtt.type == typeof(string))
                 {
                     string saveValue = PlayerPrefs.GetString(name);
-                    if (saveAtt.isErrorValue(saveValue))
-                    {
-                        field.SetValue(this, saveAtt.initValue);
-                    }
-                    else
+                    if (!saveAtt.isErrorValue(saveValue))
                     {
                         field.SetValue(this, saveValue);
                     }
-                }else if(value is SaveDataBase Base)
+                }
+                else if(saveAtt.type.IsSubclassOf(typeof(SaveDataBase)))
                 {
-                    Base.Load();
+                    SaveDataBase saveValue = value as SaveDataBase;
+                    if(saveValue == null)
+                    {
+                        saveValue = (SaveDataBase)Activator.CreateInstance(saveAtt.type);
+                    }
+                    saveValue.Load();
+                    field.SetValue(this, saveValue);
                 }
             }
         }   
     }
 
-    public void Save()
+    public void Save(bool isFirst = true)
     {
-        PlayerPrefs.DeleteAll();
+        if (isFirst)
+        {
+            PlayerPrefs.DeleteAll();
+        }
 
         // 自分のクラスのフィールドを探索する
         var fieldList = this.GetType().GetFields();
@@ -153,7 +170,7 @@ public class SaveDataBase : object
                 }
                 else if (value is SaveDataBase Base)
                 {
-                    Base.Save();
+                    Base.Save(false);
                 }
             }
         }
@@ -169,13 +186,13 @@ class PlayerData
 public class SaveDataAttribute : System.Attribute
 {
     public string key;
-    public object initValue;
+    public Type type;
     public object errorValue;
 
-    public SaveDataAttribute(string _key, object _initValue = null, object _errorValue = null)
+    public SaveDataAttribute(string _key,Type _type, object _errorValue = null)
     {
         key = _key;
-        initValue = _initValue;
+        type = _type;
         errorValue = _errorValue;
     }
 
