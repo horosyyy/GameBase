@@ -9,7 +9,7 @@ public class StateData
     public int Value;
     public string Name;
 
-    public Action FirstAction;
+    public Action EirstAction;
     public Action LoopAction;
     public Action EndAction;
 }
@@ -44,14 +44,14 @@ public class GameStateManagerBase<T> : SingletonMonoBehaviour<T> where T : MonoB
         }
     }
 
-    public void AddState(string _name, Action _firstAction, Action _loopAction, Action _endAction)
+    protected void AddState(string _name, Action _enterAction, Action _loopAction, Action _endAction)
     {
         StateData state = new StateData()
         {
             Value = StateNum,
             Name = _name,
 
-            FirstAction = _firstAction,
+            EirstAction = _enterAction,
             LoopAction = _loopAction,
             EndAction = _endAction,
         };
@@ -60,7 +60,7 @@ public class GameStateManagerBase<T> : SingletonMonoBehaviour<T> where T : MonoB
         mStateList.Add(state);
     }
 
-    public void ChangeState(string _name)
+    protected void ChangeState(string _name)
     {
         if (mNowState != null && mNowState.EndAction != null)
         {
@@ -75,9 +75,9 @@ public class GameStateManagerBase<T> : SingletonMonoBehaviour<T> where T : MonoB
         mPreState = mNowState;
         mNowState = state;
         IsNowChange = true;
-        if (mNowState != null && mNowState.FirstAction != null)
+        if (mNowState != null && mNowState.EirstAction != null)
         {
-            mNowState.FirstAction();
+            mNowState.EirstAction();
         }
     }
 

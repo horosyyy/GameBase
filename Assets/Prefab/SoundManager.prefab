@@ -558,10 +558,25 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 2271ea77d7b14e444b171738c8f59ec9, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  mSESourceList: []
-  mBGMSourceList: []
-  mSEList: []
-  mBGMList: []
+  mSEController:
+    mSourceList:
+    - {fileID: 1184411537350452585}
+    - {fileID: 3382385116328719724}
+    - {fileID: 4632676631558608609}
+    - {fileID: 8882934630849270994}
+    - {fileID: 458008319483078624}
+    - {fileID: 6897971955952003116}
+    mClipList:
+    - name: SampleSe
+      clip: {fileID: 8300000, guid: 9030eeee04372374eb77866ee710fd65, type: 3}
+  mBGMController:
+    mSourceList:
+    - {fileID: 8793733539553904401}
+    - {fileID: 4617582843374581164}
+    - {fileID: 6130463107190750438}
+    mClipList:
+    - name: SampleBgm
+      clip: {fileID: 8300000, guid: 9030eeee04372374eb77866ee710fd65, type: 3}
 --- !u!1 &4124907803393749096
 GameObject:
   m_ObjectHideFlags: 0

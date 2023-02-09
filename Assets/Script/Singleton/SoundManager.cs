@@ -23,6 +23,7 @@ public class SoundManager : SingletonMonoBehaviour<SoundManager>
         base.Awake();
         mSEController.Init();
         mBGMController.Init();
+        DebugLogSystem.DebugLog(this, "generate SoundManager");
     }
     #endregion // override
 
@@ -145,6 +146,7 @@ public class SoundManager : SingletonMonoBehaviour<SoundManager>
     [Serializable]
     abstract class AudioClass
     {
+        [Serializable]
         public struct ClipInfo
         {
             public string name;
@@ -292,13 +294,13 @@ public class SoundManager : SingletonMonoBehaviour<SoundManager>
 
             if (SeSource == null)
             {
-                DebugManager.Instance.ErrorLog(SoundManager.Instance, "SEの再生レイヤーが足りていません。");
+                DebugLogSystem.ErrorLog(SoundManager.Instance, "SEの再生レイヤーが足りていません。");
                 return null;
             }
 
             if (!mClipDict.ContainsKey(name))
             {
-                DebugManager.Instance.ErrorLog(SoundManager.Instance, "そのようなSEは存在しません");
+                DebugLogSystem.ErrorLog(SoundManager.Instance, "そのようなSEは存在しません");
                 return null;
             }
 
@@ -321,7 +323,7 @@ public class SoundManager : SingletonMonoBehaviour<SoundManager>
         {
             if (!mClipDict.ContainsKey(name))
             {
-                DebugManager.Instance.ErrorLog(SoundManager.Instance, "そのようなBGMは存在しません");
+                DebugLogSystem.ErrorLog(SoundManager.Instance, "そのようなBGMは存在しません");
                 return null;
             }
 
@@ -347,7 +349,7 @@ public class SoundManager : SingletonMonoBehaviour<SoundManager>
 
             if (BGMSourceList.Count == 0)
             {
-                DebugManager.Instance.ErrorLog(SoundManager.Instance, "BGMの再生レイヤーが足りていません。");
+                DebugLogSystem.ErrorLog(SoundManager.Instance, "BGMの再生レイヤーが足りていません。");
                 return null;
             }
 
