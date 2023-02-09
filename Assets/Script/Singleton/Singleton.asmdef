@@ -1,3 +1,16 @@
 {
-	"name": "Singleton"
+    "name": "Singleton",
+    "rootNamespace": "",
+    "references": [
+        "StaticClass"
+    ],
+    "includePlatforms": [],
+    "excludePlatforms": [],
+    "allowUnsafeCode": false,
+    "overrideReferences": false,
+    "precompiledReferences": [],
+    "autoReferenced": true,
+    "defineConstraints": [],
+    "versionDefines": [],
+    "noEngineReferences": false
 }

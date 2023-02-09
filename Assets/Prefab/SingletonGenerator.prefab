@@ -45,6 +45,6 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   SingletonManager:
-  - {fileID: 620347090863157567, guid: d9a312f50502c1a488a59751f8b4fc4c, type: 3}
   - {fileID: 3967364806495278070, guid: b2a32db84e8b92d47ac0f578404ab4e8, type: 3}
   - {fileID: 3081428190066468822, guid: 412135bdee88f1f448c3cef3a81ceff5, type: 3}
+  - {fileID: 620347090863157567, guid: d9a312f50502c1a488a59751f8b4fc4c, type: 3}
