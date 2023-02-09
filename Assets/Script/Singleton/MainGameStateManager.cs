@@ -18,6 +18,13 @@ public class MainGameStateManager : GameStateManagerBase<MainGameStateManager>
         DebugLogSystem.DebugLog(this, "generate MainGameStateManager");
     }
 
+    protected void Start()
+    {
+        AddState(MainGameState.Title, null, null, null);
+        AddState(MainGameState.InGame, null, null, null);
+        ChangeState(MainGameState.Title);
+    }
+
     public void AddState(MainGameState _state, Action _enterAction, Action _loopAction, Action _endAction)
     {
         base.AddState(_state.ToString(), _enterAction, _loopAction, _endAction);

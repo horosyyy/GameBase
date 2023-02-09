@@ -6,7 +6,9 @@ using UnityEngine;
 [Serializable]
 public class StateData
 {
+    [NonSerialized]
     public int Value;
+    [Disable]
     public string Name;
 
     public Action EirstAction;
