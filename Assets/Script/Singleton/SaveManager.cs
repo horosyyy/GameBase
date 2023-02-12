@@ -1,110 +1,132 @@
 using System;
 using System.IO;
-using System.Text.Json;
-using System.Text.Json.Serialization;
+using System.Security.Cryptography;
 using UnityEngine;
 
-
-/// <summary>
-/// セーブマネージャー
-/// </summary>
 public class SaveManager : SingletonMonoBehaviour<SaveManager>
 {
     protected override bool dontDestroyOnLoad { get { return true; } }
+    private const string keyFilePath = "key.dat";
 
-    private string filePath;
+    private byte[] _key;
+    private byte[] _iv;
 
-    private SaveData save = null;
-
-    public SaveData getSaveData { get { return save; } }
+    SaveData save = null;
 
     protected override void Awake()
     {
         base.Awake();
-        filePath = Application.persistentDataPath + "/" + "savedata.json";
-        save = new SaveData();
-        Load();
-
-        DebugLogSystem.DebugLog(this, "generate SaveManager");
-    }
-
-    public void Save()
-    {
-        string json = Encode(JsonUtility.ToJson(save));
-        StreamWriter streamWriter = new StreamWriter(filePath);
-        streamWriter.Write(json);
-        streamWriter.Flush();
-        streamWriter.Close();
-    }
-    public void Load()
-    {
-        try
+        LoadKey();
+        if (_key == null || _key.Length == 0)
         {
-            StreamReader streamReader = new StreamReader(filePath);
-            string json = streamReader.ReadToEnd();
-            streamReader.Close();
-            var _save = JsonUtility.FromJson<SaveData>(Decode(json));
-            if (_save != null)
-                save = _save;
-        }
-        catch(Exception)
-        {
-            Save();
+            _key = new byte[32];
+            _iv = new byte[16];
+            using (var provider = new RNGCryptoServiceProvider())
+            {
+                provider.GetBytes(_key);
+                provider.GetBytes(_iv);
+            }
+            SaveKey();
         }
     }
 
-    private string Encode(string json)
+    private void LoadKey()
     {
-        return json;
+        if (File.Exists(keyFilePath))
+        {
+            var data = File.ReadAllBytes(keyFilePath);
+            using (var ms = new MemoryStream(data))
+            using (var br = new BinaryReader(ms))
+            {
+                _key = br.ReadBytes(32);
+                _iv = br.ReadBytes(16);
+            }
+        }
     }
 
-    private string Decode(string code)
+    private void SaveKey()
     {
-        return code;
+        using (var ms = new MemoryStream())
+        using (var bw = new BinaryWriter(ms))
+        {
+            bw.Write(_key);
+            bw.Write(_iv);
+            File.WriteAllBytes(keyFilePath, ms.ToArray());
+        }
     }
 
+    public void Save<T>(T data, string filePath)
+    {
+        var json = JsonUtility.ToJson(data);
+        var encryptedData = EncryptString(json);
+        File.WriteAllBytes(filePath, encryptedData);
+    }
+
+    public T Load<T>(string filePath) where T : class, new()
+    {
+        if (!File.Exists(filePath))
+        {
+            return new T();
+        }
+
+        var data = File.ReadAllBytes(filePath);
+        var json = DecryptString(data);
+        return JsonUtility.FromJson<T>(json);
+    }
+
+    private byte[] EncryptString(string plainText)
+    {
+        byte[] encrypted;
+        using (Aes aes = Aes.Create())
+        {
+            aes.Key = _key;
+            aes.IV = _iv;
+
+            ICryptoTransform encryptor = aes.CreateEncryptor(aes.Key, aes.IV);
+
+            using (MemoryStream ms = new MemoryStream())
+            {
+                using (CryptoStream cs = new CryptoStream(ms, encryptor, CryptoStreamMode.Write))
+                {
+                    using (StreamWriter sw = new StreamWriter(cs))
+                    {
+                        sw.Write(plainText);
+                    }
+                    encrypted = ms.ToArray();
+                }
+            }
+        }
+        return encrypted;
+    }
+
+    private string DecryptString(byte[] cipherText)
+    {
+        string plaintext = null;
+        using (Aes aes = Aes.Create())
+        {
+            aes.Key = _key;
+            aes.IV = _iv;
+            ICryptoTransform decryptor = aes.CreateDecryptor(aes.Key, aes.IV);
+
+            using (MemoryStream ms = new MemoryStream(cipherText))
+            {
+                using (CryptoStream cs = new CryptoStream(ms, decryptor, CryptoStreamMode.Read))
+                {
+                    using (StreamReader sr = new StreamReader(cs))
+                    {
+                        plaintext = sr.ReadToEnd();
+                    }
+                }
+            }
+        }
+        return plaintext;
+    }
 }
 
 [Serializable]
 public class SaveData
 {
-    /// <summary>
-    /// セーブバージョン
-    /// </summary>
-    public const int version = 0;
-
-    /// <summary>
-    /// マスター音量
-    /// </summary>
-    [SerializeField]
-    private float masterVolume = 1.0f;
-
-    public float MasterVolume
-    {
-        get { return masterVolume; }
-        set { masterVolume = Mathf.Clamp(value, 0.0f, 1.0f); }
-    }
-
-    /// <summary>
-    /// SEの音量
-    /// </summary>
-    [SerializeField]
-    private float seVolume = 1.0f;
-    public float SeVolume
-    {
-        get { return seVolume; }
-        set { seVolume = Mathf.Clamp(value, 0.0f, 1.0f); }
-    }
-
-    /// <summary>
-    /// BGMの音量
-    /// </summary>
-    [SerializeField]
-    private float bgmVolume = 1.0f;
-    public float BgmVolume
-    {
-        get { return bgmVolume; }
-        set { bgmVolume = Mathf.Clamp(value, 0.0f, 1.0f); }
-    }
-
+    public float MasterVolume = 1.0f;
+    public float BGMVolume = 1.0f;
+    public float SEVolume = 1.0f;
 }
